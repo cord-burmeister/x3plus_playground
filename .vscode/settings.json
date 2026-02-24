@@ -1,3 +1,14 @@
 {
-    "python-envs.pythonProjects": []
+    "python-envs.pythonProjects": [],
+    "ROS2.distro": "humble",
+    "python.autoComplete.extraPaths": [
+        "C:\\opt\\ros\\humble\\x64\\Lib\\site-packages",
+        "C:\\opt\\ros\\humble\\x64\\lib\\python3.10\\dist-packages",
+        "c:\\opt\\ros\\humble\\x64\\Lib\\site-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "C:\\opt\\ros\\humble\\x64\\Lib\\site-packages",
+        "C:\\opt\\ros\\humble\\x64\\lib\\python3.10\\dist-packages",
+        "c:\\opt\\ros\\humble\\x64\\Lib\\site-packages"
+    ]
 }

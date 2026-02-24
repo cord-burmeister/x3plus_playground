@@ -40,6 +40,19 @@ install(
   maps/
   DESTINATION share/${PROJECT_NAME}/maps
 )
+# Install the world files
+install(
+  DIRECTORY
+  worlds/
+  DESTINATION share/${PROJECT_NAME}/worlds
+)
+# Install the models files
+install(
+  DIRECTORY
+  models/
+  DESTINATION share/${PROJECT_NAME}/models
+)
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

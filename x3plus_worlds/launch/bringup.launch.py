@@ -52,7 +52,7 @@ def generate_launch_description() -> LaunchDescription:
 		),
 		DeclareLaunchArgument(
 			"robot_name",
-			default_value="x3plus",
+			default_value="x3plus_bot",
 			description="Robot name namespace/identifier.",
 		),
 		DeclareLaunchArgument(
@@ -89,8 +89,8 @@ def generate_launch_description() -> LaunchDescription:
 			),
 			launch_arguments={
 				"use_sim_time": LaunchConfiguration("use_sim_time"),
-				"robot_name": LaunchConfiguration("robot_name"),
-				"world": LaunchConfiguration("world"),
+				"robot_name": LaunchConfiguration("robot_name", default="x3plus_bot"),
+				"world": LaunchConfiguration("world", default=world_file),
 				"headless": LaunchConfiguration("headless"),
 			}.items(),
 			condition=IfCondition(

@@ -179,6 +179,8 @@ def generate_launch_description():
         parameters=[{
             'config_file': os.path.join(pkg_project_gazebo, 'config', 'x3plus_bridge.yaml'),
             'qos_overrides./tf_static.publisher.durability': 'transient_local',
+            "WORLD_NAME": "default",
+            "MODEL_NAME": "x3plus_bot",
         }],
         output='screen'
     )

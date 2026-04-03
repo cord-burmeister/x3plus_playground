@@ -25,8 +25,16 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
 
+import xml.etree.ElementTree as ET
 
 #region Start Simulation
+
+
+def get_world_name(sdf_path: str) -> str:
+    tree = ET.parse(sdf_path)
+    root = tree.getroot()
+    world = root.find("world")
+    return world.get("name") if world is not None else None
 
 def launch_setup(context, *args, **kwargs):
     """
@@ -35,6 +43,7 @@ def launch_setup(context, *args, **kwargs):
     """
     world = LaunchConfiguration("world").perform(context)
     headless = LaunchConfiguration("headless").perform(context)
+
     gz_args = f"--headless-rendering -s -v 4 -r {world}" if eval(headless) else f"-r {world}"
     gz_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -104,6 +113,7 @@ def generate_launch_description():
             "roll": LaunchConfiguration("roll", default="0.00"),
             "pitch": LaunchConfiguration("pitch", default="0.00"),
             "yaw": LaunchConfiguration("yaw", default="0.00"),
+            "world": LaunchConfiguration("world"),
         }.items(),
     )
 

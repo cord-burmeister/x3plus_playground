@@ -2,6 +2,25 @@
 <sdf version="1.6">
   <world name="willow_garage_world">
 
+    <!-- Core simulation systems -->
+    <plugin filename="gz-sim-physics-system"
+            name="gz::sim::systems::Physics"/>
+
+    <plugin filename="gz-sim-sensors-system"
+            name="gz::sim::systems::Sensors"/>
+
+    <plugin filename="gz-sim-scene-broadcaster-system"
+            name="gz::sim::systems::SceneBroadcaster"/>
+
+    <plugin filename="gz-sim-user-commands-system"
+            name="gz::sim::systems::UserCommands"/>
+
+    <!-- Optional: IMU system (if your robot uses IMU sensors) -->
+    <plugin filename="gz-sim-imu-system"
+            name="gz::sim::systems::Imu"/>
+
+
+            
     <!-- Ground plane -->
     <!-- <include>
       <uri>model://ground_plane</uri>
@@ -26,6 +45,7 @@
             </attenuation>
             <direction>-0.5 0.1 -0.9</direction>
         </light>
+        
     <!-- Willow Garage building -->
     <include>
       <uri>model://Willow_Garage</uri>

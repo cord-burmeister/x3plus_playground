@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>x3plus_worlds</name>
+  <version>0.1.0</version>
+  <description>Roboter launch files for additional worlds</description>
+  <maintainer email="cord.burmeister@live.de">marvin</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>laser_filters</depend>
+
+  <depend>willowgarage</depend> 
+  <depend>x3plus_description</depend>
+  <depend>x3plus_gazebo</depend> 
+	
+  <!-- It is also good practice to add a dependency to ros2launch to the package.xml file of your package: -->
+  <exec_depend>ros2launch</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

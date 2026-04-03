@@ -11,5 +11,9 @@
         "C:\\opt\\ros\\humble\\x64\\lib\\python3.10\\dist-packages",
         "c:\\opt\\ros\\humble\\x64\\Lib\\site-packages"
     ],
-    "github.copilot.chat.codeGeneration.useInstructionFiles": true
+    "[python]": {
+        "editor.insertSpaces": false,
+        "editor.detectIndentation": false,
+        "editor.tabSize": 4
+    }
 }

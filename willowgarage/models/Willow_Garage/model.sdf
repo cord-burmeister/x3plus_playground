@@ -6,15 +6,24 @@
     <link name="walls">
       <collision name="collision">
         <geometry>
-          <mesh>
+          <!-- <mesh>
             <uri>model://willowgarage/meshes/willowgarage_collision.dae</uri>
+          </mesh> -->
+          <!-- <mesh>
+            <uri>model://willowgarage/meshes/willowgarage_visual.dae</uri>
+          </mesh> -->
+          <mesh>
+            <uri>model://willowgarage/meshes/willowgarage.glb</uri>
           </mesh>
         </geometry>
       </collision>
       <visual name="visual">
         <geometry>
-          <mesh>
+          <!-- <mesh>
             <uri>model://willowgarage/meshes/willowgarage_visual.dae</uri>
+          </mesh> -->
+          <mesh>
+            <uri>model://willowgarage/meshes/willowgarage.glb</uri>
           </mesh>
         </geometry>
         <cast_shadows>false</cast_shadows>

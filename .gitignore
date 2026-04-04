@@ -52,4 +52,5 @@ CATKIN_IGNORE
 
 .vscode/
 
+# Blender backup files
 *.blend1

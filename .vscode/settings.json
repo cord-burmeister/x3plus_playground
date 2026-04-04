@@ -10,5 +10,10 @@
         "C:\\opt\\ros\\humble\\x64\\Lib\\site-packages",
         "C:\\opt\\ros\\humble\\x64\\lib\\python3.10\\dist-packages",
         "c:\\opt\\ros\\humble\\x64\\Lib\\site-packages"
-    ]
+    ],
+    "[python]": {
+        "editor.insertSpaces": false,
+        "editor.detectIndentation": false,
+        "editor.tabSize": 4
+    }
 }

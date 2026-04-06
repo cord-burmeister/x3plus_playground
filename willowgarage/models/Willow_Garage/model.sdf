@@ -7,7 +7,7 @@
       <collision name="collision">
         <geometry>
           <!-- <mesh>
-            <uri>model://willowgarage/meshes/willowgarage_collision.dae</uri>
+            <uri>model://willowgarage/meshes/willowgarage_collision.dae.glb</uri>
           </mesh> -->
           <!-- <mesh>
             <uri>model://willowgarage/meshes/willowgarage_visual.dae</uri>
@@ -19,6 +19,9 @@
       </collision>
       <visual name="visual">
         <geometry>
+          <!-- <mesh>
+            <uri>model://willowgarage/meshes/willowgarage_collision.dae.glb</uri>
+          </mesh> -->
           <!-- <mesh>
             <uri>model://willowgarage/meshes/willowgarage_visual.dae</uri>
           </mesh> -->

@@ -14,12 +14,20 @@
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, LogInfo
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, LogInfo, OpaqueFunction
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+
+
+def validate_enum_arg(context, name, valid):
+    value = context.launch_configurations[name]
+    if value not in valid:
+        raise ValueError(
+            f"Argument '{name}' must be one of {valid}, got '{value}'"
+        )
 
 
 def generate_launch_description() -> LaunchDescription:
@@ -29,8 +37,9 @@ def generate_launch_description() -> LaunchDescription:
 	use_sim_time = LaunchConfiguration("use_sim_time")
 	robot_name = LaunchConfiguration("robot_name")
 	mode = LaunchConfiguration("mode")
+	use_case = LaunchConfiguration("use_case")
+	use_ui = LaunchConfiguration("use_ui")
 	rviz_config_file = LaunchConfiguration("rviz_config_file")
-	worlds_use_rviz = LaunchConfiguration("worlds_use_rviz")
 
 	pkg_share = FindPackageShare("x3plus_worlds")
 	# world_file = PathJoinSubstitution([get_package_share_directory("willowgarage"), "worlds", "willowgarage.world"])
@@ -48,7 +57,17 @@ def generate_launch_description() -> LaunchDescription:
 		DeclareLaunchArgument(
 			"mode",
 			default_value="simulation",
-			description="Launch mode (simulation or real).",
+			description="Launch mode: simulation, real).",
+		),
+		DeclareLaunchArgument(
+			"use_case",
+			default_value="drive",
+			description="Use case for the robot: drive",
+		),
+		DeclareLaunchArgument(
+			"use_ui",
+			default_value="rviz",
+			description="Whether to use which UI: rviz, none.",
 		),
 		DeclareLaunchArgument(
 			"robot_name",
@@ -62,22 +81,37 @@ def generate_launch_description() -> LaunchDescription:
 		),
         DeclareLaunchArgument(
             'headless',
-            default_value='True',
+            default_value='False',
             description='Whether to execute gazebo Client UI)'),
-        DeclareLaunchArgument(
-			'worlds_use_rviz',
-			default_value='true',
-            description='Whether to start RVIZ'),
         DeclareLaunchArgument(
             'rviz_config_file',
             default_value=PathJoinSubstitution([pkg_share, 'rviz', 'nav_footprint.rviz']),
             description='Full path to the RVIZ config file to use')
 	]
 
-
-
 	launch_actions = [
 		LogInfo(msg=["Starting bringup for robot: ", robot_name]),
+		OpaqueFunction(
+            function=lambda context: validate_enum_arg(
+                context,
+                'mode',
+                ['simulation', 'real']
+            )
+        ),
+		OpaqueFunction(
+            function=lambda context: validate_enum_arg(
+                context,
+                'use_case',
+                ['drive']
+            )
+        ),
+		OpaqueFunction(
+            function=lambda context: validate_enum_arg(
+                context,
+                'use_ui',
+                ['rviz', 'none']
+            )
+        ),		
 		IncludeLaunchDescription(
 			PythonLaunchDescriptionSource(
 				PathJoinSubstitution([
@@ -97,6 +131,21 @@ def generate_launch_description() -> LaunchDescription:
 				PythonExpression(["'", mode, "' == 'simulation'"])
 			),
 		),
+		IncludeLaunchDescription(
+			PythonLaunchDescriptionSource(
+				PathJoinSubstitution([
+					pkg_share,
+					"launch",
+					"utils",
+					"teleop.launch.py",
+				])
+			),
+			launch_arguments={
+			}.items(),
+			condition=IfCondition(
+				PythonExpression(["'", use_case, "' == 'drive'"])
+			),
+		),
 		Node(
 			package="rviz2",
 			executable="rviz2",
@@ -104,7 +153,9 @@ def generate_launch_description() -> LaunchDescription:
 			arguments=["-d", rviz_config_file],
 			parameters=[{"use_sim_time": use_sim_time}],
 			output="screen",
-			condition=IfCondition(worlds_use_rviz),
+			condition=IfCondition(
+				PythonExpression(["'", use_ui, "' == 'rviz'"])
+			),
 		),
 	]
 

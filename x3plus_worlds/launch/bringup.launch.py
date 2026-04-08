@@ -29,10 +29,25 @@ def validate_enum_arg(context, name, valid):
             f"Argument '{name}' must be one of {valid}, got '{value}'"
         )
 
+def running_in_wsl() -> bool:
+    """Detect whether the current process is running inside Windows Subsystem for Linux (WSL).
+
+    Reads /proc/sys/kernel/osrelease and checks for 'microsoft' or 'wsl' in the
+    kernel release string, which are present in WSL 1 and WSL 2 kernels.
+
+    Returns:
+        True if running inside WSL, False otherwise (including native Linux or
+        any environment where /proc/sys/kernel/osrelease is unavailable).
+    """
+    try:
+        with open("/proc/sys/kernel/osrelease") as f:
+            release = f.read().lower()
+        return "microsoft" in release or "wsl" in release
+    except FileNotFoundError:
+        return False
 
 def generate_launch_description() -> LaunchDescription:
 	"""Generate a ROS 2 launch description skeleton."""
-
 	# Launch arguments
 	use_sim_time = LaunchConfiguration("use_sim_time")
 	robot_name = LaunchConfiguration("robot_name")
@@ -42,11 +57,19 @@ def generate_launch_description() -> LaunchDescription:
 	rviz_config_file = LaunchConfiguration("rviz_config_file")
 
 	pkg_share = FindPackageShare("x3plus_worlds")
+	pkg_teleop = FindPackageShare("x3plus_teleop")
 	# world_file = PathJoinSubstitution([get_package_share_directory("willowgarage"), "worlds", "willowgarage.world"])
 	# world_package = get_package_share_directory("aws_robomaker_small_house_world")
 	# world_file = PathJoinSubstitution([world_package, "worlds", "small_house.world"])
 	world_package = get_package_share_directory("willowgarage")
 	world_file = PathJoinSubstitution([world_package, "worlds", "willowgarage.world"])
+
+	if running_in_wsl():
+		msg = "Running inside WSL"
+		use_joystick = "false"
+	else:
+		msg = "Running on native Linux"
+		use_joystick = "true"
 
 	declared_arguments = [
 		DeclareLaunchArgument(
@@ -66,7 +89,7 @@ def generate_launch_description() -> LaunchDescription:
 		),
 		DeclareLaunchArgument(
 			"use_ui",
-			default_value="rviz",
+			default_value="cockpit",
 			description="Whether to use which UI: rviz, none.",
 		),
 		DeclareLaunchArgument(
@@ -91,6 +114,9 @@ def generate_launch_description() -> LaunchDescription:
 
 	launch_actions = [
 		LogInfo(msg=["Starting bringup for robot: ", robot_name]),
+		LogInfo(msg=[msg]),
+
+		# region Validation of enum arguments
 		OpaqueFunction(
             function=lambda context: validate_enum_arg(
                 context,
@@ -109,9 +135,11 @@ def generate_launch_description() -> LaunchDescription:
             function=lambda context: validate_enum_arg(
                 context,
                 'use_ui',
-                ['rviz', 'none']
+                ['cockpit', 'rviz', 'none']
             )
-        ),		
+        ),
+		# endregion
+
 		IncludeLaunchDescription(
 			PythonLaunchDescriptionSource(
 				PathJoinSubstitution([
@@ -144,6 +172,21 @@ def generate_launch_description() -> LaunchDescription:
 			}.items(),
 			condition=IfCondition(
 				PythonExpression(["'", use_case, "' == 'drive'"])
+			),
+		),
+		IncludeLaunchDescription(
+			PythonLaunchDescriptionSource(
+				PathJoinSubstitution([
+					pkg_teleop,
+					"launch",
+					"cockpit.launch.py",
+				])
+			),
+			launch_arguments={
+				"use_joystick": LaunchConfiguration("use_joystick", default=use_joystick),
+			}.items(),
+			condition=IfCondition(
+				PythonExpression(["'", use_ui, "' == 'cockpit'"])
 			),
 		),
 		Node(

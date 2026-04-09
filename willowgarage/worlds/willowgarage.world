@@ -15,23 +15,11 @@
     <plugin filename="gz-sim-user-commands-system"
             name="gz::sim::systems::UserCommands"/>
 
-    <!-- Optional: IMU system (if your robot uses IMU sensors) -->
     <plugin filename="gz-sim-imu-system"
             name="gz::sim::systems::Imu"/>
 
 
             
-    <!-- Ground plane -->
-    <!-- <include>
-      <uri>model://ground_plane</uri>
-    </include>
-    -->
-    <!-- Sun / lighting -->
-    <!-- 
-    <include>
-      <uri>model://sun</uri>
-    </include> 
-    -->
      <light type="directional" name="sun">
             <cast_shadows>true</cast_shadows>
             <pose>0 0 10 0 0 0</pose>

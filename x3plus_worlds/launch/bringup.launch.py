@@ -20,6 +20,14 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+import socket
+
+
+HOSTNAME_WORLD_MAP = {
+	"b760": ("willowgarage", "willowgarage-hd.world"),
+}
+
+DEFAULT_WORLD = ("willowgarage", "willowgarage.world")
 
 
 def validate_enum_arg(context, name, valid):
@@ -46,6 +54,15 @@ def running_in_wsl() -> bool:
     except FileNotFoundError:
         return False
 
+
+def resolve_world_for_hostname() -> tuple[str, str, str]:
+	"""Resolve the default world package and file for the current hostname."""
+	hostname = socket.gethostname()
+	normalized_hostname = hostname.split(".")[0].lower()
+	package_name, world_name = HOSTNAME_WORLD_MAP.get(normalized_hostname, DEFAULT_WORLD)
+	world_package = get_package_share_directory(package_name)
+	return hostname, world_package, world_name
+
 def generate_launch_description() -> LaunchDescription:
 	"""Generate a ROS 2 launch description skeleton."""
 	# Launch arguments
@@ -58,11 +75,8 @@ def generate_launch_description() -> LaunchDescription:
 
 	pkg_share = FindPackageShare("x3plus_worlds")
 	pkg_teleop = FindPackageShare("x3plus_teleop")
-	# world_file = PathJoinSubstitution([get_package_share_directory("willowgarage"), "worlds", "willowgarage.world"])
-	# world_package = get_package_share_directory("aws_robomaker_small_house_world")
-	# world_file = PathJoinSubstitution([world_package, "worlds", "small_house.world"])
-	world_package = get_package_share_directory("willowgarage")
-	world_file = PathJoinSubstitution([world_package, "worlds", "willowgarage.world"])
+	hostname, world_package, world_name = resolve_world_for_hostname()
+	world_file = PathJoinSubstitution([world_package, "worlds", world_name])
 
 	if running_in_wsl():
 		msg = "Running inside WSL"
@@ -113,8 +127,9 @@ def generate_launch_description() -> LaunchDescription:
 	]
 
 	launch_actions = [
-		LogInfo(msg=["Starting bringup for robot: ", robot_name]),
+		LogInfo(msg=["Starting bring up for robot: ", robot_name]),
 		LogInfo(msg=[msg]),
+		LogInfo(msg=["Selected default world for host ", hostname, ": ", world_name]),
 
 		# region Validation of enum arguments
 		OpaqueFunction(

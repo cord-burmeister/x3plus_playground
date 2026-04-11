@@ -37,13 +37,18 @@ DEFAULT_WORLD = ("willowgarage", "willowgarage.world")
 
 def derive_configs(context, pkg_share, *args, **kwargs):
 	use_case = LaunchConfiguration("use_case").perform(context)
+	slam = LaunchConfiguration("slam").perform(context)
 	if use_case == "drive":
 		rviz_name = "nav_footprint.rviz"
+	elif use_case == "slam":
+		rviz_name = "nav_footprint.rviz"
+		slam = "True"
+		# rviz_name = "nav_map.rviz"
 	else:
-		rviz_name = "nav_map.rviz"
+		raise ValueError(f"Unsupported use_case '{use_case}'")
 	pkg_share_path = pkg_share.perform(context)  # because pkg_share is FindPackageShare(...)
 	rviz_path = os.path.join(pkg_share_path, "rviz", rviz_name)
-	return [SetLaunchConfiguration("rviz_config_file", rviz_path)]
+	return [SetLaunchConfiguration("rviz_config_file", rviz_path), SetLaunchConfiguration("slam", slam)]
 
 
 def validate_enum_arg(context, name, valid):
@@ -114,8 +119,8 @@ def generate_launch_description() -> LaunchDescription:
 		),
 		DeclareLaunchArgument(
 			"use_case",
-			default_value="drive",
-			description="Use case for the robot: drive",
+			default_value="slam",
+			description="Use case for the robot: drive, slam",
 		),
 		DeclareLaunchArgument(
 			"use_ui",
@@ -187,7 +192,7 @@ def generate_launch_description() -> LaunchDescription:
             function=lambda context: validate_enum_arg(
                 context,
                 'use_case',
-                ['drive']
+                ['drive', 'slam']
             )
         ),
 		OpaqueFunction(
@@ -239,7 +244,7 @@ def generate_launch_description() -> LaunchDescription:
 			launch_arguments={
 			}.items(),
 			condition=IfCondition(
-				PythonExpression(["'", use_case, "' == 'drive'"])
+				PythonExpression(["'", use_case, "' in ['drive', 'slam']"])
 			),
 		),
         #endregion

@@ -12,9 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
+from jaraco import context
+
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, LogInfo, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, LogInfo, OpaqueFunction, SetLaunchConfiguration
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
@@ -28,6 +32,18 @@ HOSTNAME_WORLD_MAP = {
 }
 
 DEFAULT_WORLD = ("willowgarage", "willowgarage.world")
+
+
+
+def derive_configs(context, pkg_share, *args, **kwargs):
+	use_case = LaunchConfiguration("use_case").perform(context)
+	if use_case == "drive":
+		rviz_name = "nav_footprint.rviz"
+	else:
+		rviz_name = "nav_map.rviz"
+	pkg_share_path = pkg_share.perform(context)  # because pkg_share is FindPackageShare(...)
+	rviz_path = os.path.join(pkg_share_path, "rviz", rviz_name)
+	return [SetLaunchConfiguration("rviz_config_file", rviz_path)]
 
 
 def validate_enum_arg(context, name, valid):
@@ -103,8 +119,8 @@ def generate_launch_description() -> LaunchDescription:
 		),
 		DeclareLaunchArgument(
 			"use_ui",
-			default_value="cockpit",
-			description="Whether to use which UI: rviz, none.",
+			default_value="rviz",
+			description="Whether to use which UI: rviz, cockpit, none.",
 		),
 		DeclareLaunchArgument(
 			"robot_name",
@@ -123,7 +139,35 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument(
             'rviz_config_file',
             default_value=PathJoinSubstitution([pkg_share, 'rviz', 'nav_footprint.rviz']),
-            description='Full path to the RVIZ config file to use')
+            description='Full path to the RVIZ config file to use'),
+		DeclareLaunchArgument(
+			'use_nav2',
+			default_value='True',
+			description='Whether to start the Nav2 stack'),
+		DeclareLaunchArgument(
+			'map',
+			default_value=PathJoinSubstitution([FindPackageShare('x3plus_nav2'), 'maps', 'map.yaml']),
+			description='Full path to map file to load'),
+		DeclareLaunchArgument(
+			'params_file',
+			default_value=PathJoinSubstitution([FindPackageShare('x3plus_nav2'), 'config', 'nav2_params.yaml']),
+			description='Full path to the Nav2 parameters file'),
+		DeclareLaunchArgument(
+			'slam',
+			default_value='False',
+			description='Whether to run SLAM'),
+		DeclareLaunchArgument(
+			'autostart',
+			default_value='true',
+			description='Automatically startup the Nav2 stack'),
+		DeclareLaunchArgument(
+			'use_composition',
+			default_value='True',
+			description='Whether to use composed bringup'),
+		DeclareLaunchArgument(
+			'use_respawn',
+			default_value='False',
+			description='Whether to respawn if a node crashes'),
 	]
 
 	launch_actions = [
@@ -131,7 +175,7 @@ def generate_launch_description() -> LaunchDescription:
 		LogInfo(msg=[msg]),
 		LogInfo(msg=["Selected default world for host ", hostname, ": ", world_name]),
 
-		# region Validation of enum arguments
+		#region Validation of enum arguments
 		OpaqueFunction(
             function=lambda context: validate_enum_arg(
                 context,
@@ -155,6 +199,12 @@ def generate_launch_description() -> LaunchDescription:
         ),
 		# endregion
 
+	    OpaqueFunction(
+                function=derive_configs, 
+                        kwargs={"pkg_share": pkg_share},),
+
+
+		#region Include simulation launch files based on conditions
 		IncludeLaunchDescription(
 			PythonLaunchDescriptionSource(
 				PathJoinSubstitution([
@@ -174,6 +224,9 @@ def generate_launch_description() -> LaunchDescription:
 				PythonExpression(["'", mode, "' == 'simulation'"])
 			),
 		),
+        #endregion
+        
+		#region Include teleop launch file based on use case
 		IncludeLaunchDescription(
 			PythonLaunchDescriptionSource(
 				PathJoinSubstitution([
@@ -189,6 +242,58 @@ def generate_launch_description() -> LaunchDescription:
 				PythonExpression(["'", use_case, "' == 'drive'"])
 			),
 		),
+        #endregion
+
+		#region Include localization launch files
+		IncludeLaunchDescription(
+			PythonLaunchDescriptionSource(
+				PathJoinSubstitution([
+					FindPackageShare("x3plus_localization"),
+					"launch",
+					"laser_filters_launch.py",
+				])
+			),
+			launch_arguments={
+				"use_sim_time": LaunchConfiguration("use_sim_time"),
+			}.items(),
+		),
+		IncludeLaunchDescription(
+			PythonLaunchDescriptionSource(
+				PathJoinSubstitution([
+					FindPackageShare("x3plus_localization"),
+					"launch",
+					"wheel_localization_launch.py",
+				])
+			),
+			launch_arguments={
+				"use_sim_time": LaunchConfiguration("use_sim_time"),
+			}.items(),
+		),
+		#endregion
+
+		#region Include Nav2 launch file
+		IncludeLaunchDescription(
+			PythonLaunchDescriptionSource(
+				PathJoinSubstitution([
+					FindPackageShare('x3plus_nav2'),
+					'launch',
+					'nav2_launch.py',
+				])
+			),
+			launch_arguments={
+				'use_sim_time':    LaunchConfiguration('use_sim_time'),
+				'map':             LaunchConfiguration('map'),
+				'params_file':     LaunchConfiguration('params_file'),
+				'slam':            LaunchConfiguration('slam'),
+				'autostart':       LaunchConfiguration('autostart'),
+				'use_composition': LaunchConfiguration('use_composition'),
+				'use_respawn':     LaunchConfiguration('use_respawn'),
+			}.items(),
+			condition=IfCondition(LaunchConfiguration('use_nav2')),
+		),
+		#endregion
+
+        #region Include UI launch files based on conditions    
 		IncludeLaunchDescription(
 			PythonLaunchDescriptionSource(
 				PathJoinSubstitution([
@@ -215,6 +320,9 @@ def generate_launch_description() -> LaunchDescription:
 				PythonExpression(["'", use_ui, "' == 'rviz'"])
 			),
 		),
+        #endregion
+	
+	
 	]
 
 	return LaunchDescription(declared_arguments + launch_actions)

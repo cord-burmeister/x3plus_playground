@@ -117,14 +117,14 @@ def generate_launch_description():
         }.items(),
     )
 
-    x3plus_bringup_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(bringup_launch_dir, 'bringup_launch.py')),
-        launch_arguments={'namespace': "",
-                          'use_namespace':  "False",
-                          'use_rviz': "False",
-                          'use_sim_time': use_sim_time
-                          }.items())
+    # x3plus_bringup_cmd = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         os.path.join(bringup_launch_dir, 'bringup_launch.py')),
+    #     launch_arguments={'namespace': "",
+    #                       'use_namespace':  "False",
+    #                       'use_rviz': "False",
+    #                       'use_sim_time': use_sim_time
+    #                       }.items())
 
     # Create the launch description and populate
     ld = LaunchDescription()
@@ -141,7 +141,7 @@ def generate_launch_description():
 
     # Add the actions to launch all of the navigation nodes
     # ld.add_action(start_robot_state_publisher_cmd)
-    ld.add_action(x3plus_bringup_cmd)
+    # ld.add_action(x3plus_bringup_cmd)
     
 
     return ld

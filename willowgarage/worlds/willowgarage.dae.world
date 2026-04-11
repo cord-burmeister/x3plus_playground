@@ -18,9 +18,7 @@
     <plugin filename="gz-sim-imu-system"
             name="gz::sim::systems::Imu"/>
 
-        <scene>
-        <grid>false</grid>
-        </scene>
+
             
      <light type="directional" name="sun">
             <cast_shadows>true</cast_shadows>
@@ -38,7 +36,7 @@
         
     <!-- Willow Garage building -->
     <include>
-      <uri>model://Willow_Garage_HD</uri>
+      <uri>model://Willow_Garage_DAE</uri>
       <!-- Optional: pose if you want to shift it -->
       <!-- <pose>0 0 0 0 0 0</pose> -->
     </include>

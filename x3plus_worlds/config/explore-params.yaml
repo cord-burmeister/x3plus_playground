@@ -1,0 +1,52 @@
+/**:
+  ros__parameters:
+    # The name of the base frame of the robot. This is used for determining robot position on map. Mandatory.
+    robot_base_frame: base_footprint
+
+    return_to_init: true
+    # The name of the topic on which the costmap is published. This is used for determining obstacles on the map. Mandatory.
+    costmap_topic: map
+    # The name of the topic on which costmap updates are published. This is used for determining changes in the environment. Optional, default is "map_updates".
+    costmap_updates_topic: map_updates
+    # Specifies whether or not publish visualized frontiers. Optional, default is false.
+    visualize: true
+    # The frequency at which the planner should run. Optional, default is 1.0.
+    planner_frequency: 0.15
+    # The timeout for progress. Optional, default is 30.0.
+    # If the robot does not make progress towards the current goal for this amount of time, it will be considered stuck and a new goal will be selected.
+    # The frontier that caused the robot to get stuck will be blacklisted for this amount of time, meaning it will not be selected as a goal. 
+    # This is to prevent the robot from getting stuck in the same place repeatedly.
+    # But be aware that the black listed frontier will not be considered anymore until the blacklisting expires, even if the robot is not stuck anymore. 
+    # So be careful when setting this parameter, especially in large environments where it may take a long time to get to a frontier.
+    # The reasoning is that in large environments, the robot may legitimately need more time to reach a frontier goal. 
+    # If the timeout is set too low, the robot might be incorrectly flagged as "stuck" and abandon the frontier before 
+    # it actually reaches it, even though progress is being made. This would be wasteful since the blacklisting 
+    # mechanism would then prevent that frontier from being selected again until the timeout expires.
+    # The default value is 30.0 seconds, but for larger environments, you'd likely want to increase this value 
+    #to give the robot adequate time to traverse the distance to distant frontiers.
+    progress_timeout: 130.0
+    # ###########################################################################
+    # The following parameters are used for scoring frontiers. 
+    # The frontier with the lowest score will be selected as the goal.
+    #  return (potential_scale_ * frontier.min_distance *
+    #      costmap_->getResolution()) -
+    #     (gain_scale_ * frontier.size * costmap_->getResolution());
+
+    # The scale for potential. Optional, default is 3.0.
+    # For large environments: You'd typically want to lower potential_scale below the default of 3.0 
+    # to allow the robot to explore distant frontiers without them being heavily penalized. 
+    # This prevents the robot from getting "stuck" exploring only nearby areas and ensures 
+    # comprehensive exploration across the full environment.
+    potential_scale: 1.0
+    # The scale for orientation. Optional, default is 0.0.
+    # The orientation scale parameter is not evaluated. This is not relevant.
+    orientation_scale: 0.0
+    # The scale for gain. Optional, default is 1.0.
+    # You might also want to balance this with the gain_scale parameter—increasing 
+    # it encourages exploring larger frontier areas, which can help with efficient coverage 
+    # in large environments.
+    gain_scale: 1.0
+    # The tolerance for transforms. Optional, default is 0.3.
+    transform_tolerance: 0.3
+    # The minimum size of frontiers. Optional, default is 0.5.
+    min_frontier_size: 0.75

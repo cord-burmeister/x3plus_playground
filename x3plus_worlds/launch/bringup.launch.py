@@ -44,6 +44,9 @@ def derive_configs(context, pkg_share, *args, **kwargs):
 		rviz_name = "nav_footprint.rviz"
 		slam = "True"
 		# rviz_name = "nav_map.rviz"
+	elif use_case == "explore":
+		rviz_name = "explore_footprint.rviz"
+		slam = "True"
 	else:
 		raise ValueError(f"Unsupported use_case '{use_case}'")
 	pkg_share_path = pkg_share.perform(context)  # because pkg_share is FindPackageShare(...)
@@ -93,6 +96,8 @@ def generate_launch_description() -> LaunchDescription:
 	use_case = LaunchConfiguration("use_case")
 	use_ui = LaunchConfiguration("use_ui")
 	rviz_config_file = LaunchConfiguration("rviz_config_file")
+	explore_config_file = LaunchConfiguration("explore_config_file")
+
 
 	pkg_share = FindPackageShare("x3plus_worlds")
 	pkg_teleop = FindPackageShare("x3plus_teleop")
@@ -120,7 +125,7 @@ def generate_launch_description() -> LaunchDescription:
 		DeclareLaunchArgument(
 			"use_case",
 			default_value="slam",
-			description="Use case for the robot: drive, slam",
+			description="Use case for the robot: drive, slam, explore",
 		),
 		DeclareLaunchArgument(
 			"use_ui",
@@ -145,6 +150,10 @@ def generate_launch_description() -> LaunchDescription:
             'rviz_config_file',
             default_value=PathJoinSubstitution([pkg_share, 'rviz', 'nav_footprint.rviz']),
             description='Full path to the RVIZ config file to use'),
+        DeclareLaunchArgument(
+            'explore_config_file',
+            default_value=PathJoinSubstitution([FindPackageShare('x3plus_nav2'), 'config', 'explore-params.yaml']),
+            description='Full path to the Explore Lite config file to use'),
 		DeclareLaunchArgument(
 			'use_nav2',
 			default_value='True',
@@ -192,7 +201,7 @@ def generate_launch_description() -> LaunchDescription:
             function=lambda context: validate_enum_arg(
                 context,
                 'use_case',
-                ['drive', 'slam']
+                ['drive', 'slam', 'explore']
             )
         ),
 		OpaqueFunction(
@@ -294,8 +303,25 @@ def generate_launch_description() -> LaunchDescription:
 				'use_composition': LaunchConfiguration('use_composition'),
 				'use_respawn':     LaunchConfiguration('use_respawn'),
 			}.items(),
-			condition=IfCondition(LaunchConfiguration('use_nav2')),
+			condition=IfCondition(
+				PythonExpression(["'", use_case, "' in ['slam', 'explore']"])
+			),
 		),
+		#endregion
+
+		#region Include explore launch file based on use case
+
+		Node(
+			package="explore_lite",
+			name="explore_node",
+			executable="explore",
+			parameters=[explore_config_file, {"use_sim_time": use_sim_time}],
+			output="screen",			
+			condition=IfCondition(
+				PythonExpression(["'", use_case, "' in ['explore']"])
+			),
+		),
+
 		#endregion
 
         #region Include UI launch files based on conditions    

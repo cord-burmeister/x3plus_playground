@@ -3,4 +3,12 @@ repositories:
     type: git
     url: https://github.com/cord-burmeister/x3plus_playground.git
     version: main
+  m-explore-ros2:
+    type: git
+    url: https://github.com/robo-friends/m-explore-ros2.git
+    version: main
+  roadmap-explorer:
+    type: git
+    url: https://github.com/suchetanrs/roadmap-explorer.git
+    version: main
 

@@ -5,10 +5,10 @@ repositories:
     version: main
   m-explore-ros2:
     type: git
-    url: https://github.com/robo-friends/m-explore-ros2.git
+    url: https://github.com/cord-burmeister/m-explore-ros2.git
     version: main
   roadmap-explorer:
     type: git
-    url: https://github.com/suchetanrs/roadmap-explorer.git
+    url: https://github.com/cord-burmeister/roadmap-explorer.git
     version: main
 

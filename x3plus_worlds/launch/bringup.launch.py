@@ -27,6 +27,7 @@ import socket
 
 HOSTNAME_WORLD_MAP = {
 	"b760": ("willowgarage", "willowgarage-hd.world"),
+	"desktop-jn2l9fh": ("aws_robomaker_small_house_world", "small_house.world"),
 }
 
 DEFAULT_WORLD = ("willowgarage", "willowgarage.world")

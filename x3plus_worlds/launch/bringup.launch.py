@@ -45,6 +45,9 @@ def derive_configs(context, pkg_share, *args, **kwargs):
 	elif use_case == "explore":
 		rviz_name = "explore_footprint.rviz"
 		slam = "True"
+	elif use_case == "rexplore":
+		rviz_name = "explore_footprint.rviz"
+		slam = "True"
 	else:
 		raise ValueError(f"Unsupported use_case '{use_case}'")
 	pkg_share_path = pkg_share.perform(context)  # because pkg_share is FindPackageShare(...)
@@ -95,6 +98,7 @@ def generate_launch_description() -> LaunchDescription:
 	use_ui = LaunchConfiguration("use_ui")
 	rviz_config_file = LaunchConfiguration("rviz_config_file")
 	explore_config_file = LaunchConfiguration("explore_config_file")
+	roadmap_explore_config_file = LaunchConfiguration('roadmap_explore_config_file')
 
 
 	pkg_share = FindPackageShare("x3plus_worlds")
@@ -123,7 +127,7 @@ def generate_launch_description() -> LaunchDescription:
 		DeclareLaunchArgument(
 			"use_case",
 			default_value="slam",
-			description="Use case for the robot: drive, slam, explore",
+			description="Use case for the robot: drive, slam, explore, rexplore",
 		),
 		DeclareLaunchArgument(
 			"use_ui",
@@ -162,8 +166,17 @@ def generate_launch_description() -> LaunchDescription:
 			description='Full path to map file to load'),
 		DeclareLaunchArgument(
 			'params_file',
-			default_value=PathJoinSubstitution([FindPackageShare('x3plus_nav2'), 'config', 'nav2_params.yaml']),
+			default_value=PathJoinSubstitution([FindPackageShare('x3plus_nav2'), 'config', 'nav2_params-MPPIController.yaml']),
 			description='Full path to the Nav2 parameters file'),
+		# DeclareLaunchArgument(
+		# 	'params_file',
+		# 	default_value=PathJoinSubstitution([FindPackageShare('x3plus_nav2'), 'config', 'nav2_params.yaml']),
+		# 	description='Full path to the Nav2 parameters file'),
+    	DeclareLaunchArgument(
+			'roadmap_explore_config_file',
+			default_value=PathJoinSubstitution([FindPackageShare('roadmap_explorer'), 'params', 'exploration_params.yaml']),
+			description='Full path to the ROS2 parameters file to use for all roadmap exploration nodes'),
+    			
 		DeclareLaunchArgument(
 			'slam',
 			default_value='False',
@@ -174,7 +187,7 @@ def generate_launch_description() -> LaunchDescription:
 			description='Automatically startup the Nav2 stack'),
 		DeclareLaunchArgument(
 			'use_composition',
-			default_value='True',
+			default_value='False',
 			description='Whether to use composed bringup'),
 		DeclareLaunchArgument(
 			'use_respawn',
@@ -199,7 +212,7 @@ def generate_launch_description() -> LaunchDescription:
             function=lambda context: validate_enum_arg(
                 context,
                 'use_case',
-                ['drive', 'slam', 'explore']
+                ['drive', 'slam', 'explore', 'rexplore']
             )
         ),
 		OpaqueFunction(
@@ -317,6 +330,20 @@ def generate_launch_description() -> LaunchDescription:
 			output="screen",			
 			condition=IfCondition(
 				PythonExpression(["'", use_case, "' in ['explore']"])
+			),
+		),
+
+    	Node(
+			package='roadmap_explorer',
+			executable='roadmap_exploration_server',
+			name='roadmap_explorer_node',
+			# prefix=['gdbserver localhost:3000'],
+			# prefix=['gdb -ex run --args'],
+			output='screen',
+			parameters=[roadmap_explore_config_file,
+						{'use_sim_time': use_sim_time}],
+			condition=IfCondition(
+				PythonExpression(["'", use_case, "' in ['rexplore']"])
 			),
 		),
 

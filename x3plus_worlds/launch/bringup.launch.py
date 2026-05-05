@@ -27,7 +27,7 @@ import socket
 
 HOSTNAME_WORLD_MAP = {
 	"b760": ("willowgarage", "willowgarage-hd.world"),
-	"desktop-jn2l9fh": ("aws_robomaker_small_house_world", "small_house.world"),
+	"desktop-jn2l9fh": ("aws_robomaker_small_house_world", "small_house_simple.world"),
 }
 
 DEFAULT_WORLD = ("willowgarage", "willowgarage.world")
@@ -153,6 +153,11 @@ def generate_launch_description() -> LaunchDescription:
             'explore_config_file',
             default_value=PathJoinSubstitution([FindPackageShare('x3plus_nav2'), 'config', 'explore-params.yaml']),
             description='Full path to the Explore Lite config file to use'),
+		DeclareLaunchArgument(
+			'visualize',
+			default_value='True',
+			description='Whether to visualize the exploration frontier markers in RViz'),
+
 		DeclareLaunchArgument(
 			'use_nav2',
 			default_value='True',
@@ -314,7 +319,7 @@ def generate_launch_description() -> LaunchDescription:
 			package="explore_lite",
 			name="explore_node",
 			executable="explore",
-			parameters=[explore_config_file, {"use_sim_time": use_sim_time}],
+			parameters=[explore_config_file, {"use_sim_time": use_sim_time, "visualize": LaunchConfiguration("visualize")}],
 			output="screen",			
 			condition=IfCondition(
 				PythonExpression(["'", use_case, "' in ['explore']"])

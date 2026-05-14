@@ -10,6 +10,7 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>laser_filters</depend>
+  <depend>rosbridge-suite</depend>
 
   <depend>willowgarage</depend> 
   <depend>x3plus_description</depend>

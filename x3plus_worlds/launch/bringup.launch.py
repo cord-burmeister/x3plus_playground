@@ -19,6 +19,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, LogInfo, OpaqueFunction, SetLaunchConfiguration
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch_xml.launch_description_sources import XMLLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -28,6 +29,7 @@ import socket
 HOSTNAME_WORLD_MAP = {
 	"b760": ("willowgarage", "willowgarage-hd.world"),
 	"desktop-jn2l9fh": ("aws_robomaker_small_house_world", "small_house_simple.world"),
+	"marvin-aspire": ("aws_robomaker_small_house_world", "small_house_simple.world"),
 }
 
 DEFAULT_WORLD = ("willowgarage", "willowgarage.world")
@@ -97,6 +99,7 @@ def generate_launch_description() -> LaunchDescription:
 	mode = LaunchConfiguration("mode")
 	use_case = LaunchConfiguration("use_case")
 	use_ui = LaunchConfiguration("use_ui")
+	use_bridge = LaunchConfiguration("use_bridge")
 	rviz_config_file = LaunchConfiguration("rviz_config_file")
 	explore_config_file = LaunchConfiguration("explore_config_file")
 	roadmap_explore_config_file = LaunchConfiguration('roadmap_explore_config_file')
@@ -134,6 +137,11 @@ def generate_launch_description() -> LaunchDescription:
 			"use_ui",
 			default_value="rviz",
 			description="Whether to use which UI: rviz, cockpit, none.",
+		),
+		DeclareLaunchArgument(
+			"use_bridge",
+			default_value="bridge",
+			description="Whether to use a bridge to connect clients: none, bridge.",
 		),
 		DeclareLaunchArgument(
 			"robot_name",
@@ -226,6 +234,13 @@ def generate_launch_description() -> LaunchDescription:
                 context,
                 'use_ui',
                 ['cockpit', 'rviz', 'none']
+            )
+        ),
+		OpaqueFunction(
+            function=lambda context: validate_enum_arg(
+                context,
+                'use_bridge',
+                ['none', 'bridge']
             )
         ),
 		# endregion
@@ -355,6 +370,21 @@ def generate_launch_description() -> LaunchDescription:
 
 		#endregion
 
+		IncludeLaunchDescription(
+            XMLLaunchDescriptionSource(
+                PathJoinSubstitution([
+                    FindPackageShare("rosbridge_server"),
+                    "launch",
+                    "rosbridge_websocket_launch.xml"
+                ])
+			),
+			# launch_arguments={
+			# 	"use_joystick": LaunchConfiguration("use_joystick", default=use_joystick),
+			#}.items(),
+			condition=IfCondition(
+				PythonExpression(["'", use_bridge, "' == 'bridge'"])
+			),
+		),
         #region Include UI launch files based on conditions    
 		IncludeLaunchDescription(
 			PythonLaunchDescriptionSource(

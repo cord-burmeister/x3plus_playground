@@ -45,10 +45,16 @@ def derive_configs(context, pkg_share, *args, **kwargs):
 		rviz_name = "nav_footprint.rviz"
 		slam = "True"
 		# rviz_name = "nav_map.rviz"
-	elif use_case == "explore":
+	elif use_case == "explore-lite":
 		rviz_name = "explore_footprint.rviz"
 		slam = "True"
-	elif use_case == "rexplore":
+	elif use_case == "explore-roadmap":
+		rviz_name = "explore_footprint.rviz"
+		slam = "True"
+	elif use_case == "explore-frontier":
+		rviz_name = "explore_footprint.rviz"
+		slam = "True"
+	elif use_case == "explore":
 		rviz_name = "explore_footprint.rviz"
 		slam = "True"
 	else:
@@ -103,6 +109,7 @@ def generate_launch_description() -> LaunchDescription:
 	rviz_config_file = LaunchConfiguration("rviz_config_file")
 	explore_config_file = LaunchConfiguration("explore_config_file")
 	roadmap_explore_config_file = LaunchConfiguration('roadmap_explore_config_file')
+	frontier_explore_config_file = LaunchConfiguration('frontier_explore_config_file')
 
 
 	pkg_share = FindPackageShare("x3plus_worlds")
@@ -131,7 +138,7 @@ def generate_launch_description() -> LaunchDescription:
 		DeclareLaunchArgument(
 			"use_case",
 			default_value="slam",
-			description="Use case for the robot: drive, slam, explore, rexplore",
+			description="Use case for the robot: drive, slam, explore, explore-lite, explore-roadmap, explore-frontier.",
 		),
 		DeclareLaunchArgument(
 			"use_ui",
@@ -141,7 +148,7 @@ def generate_launch_description() -> LaunchDescription:
 		DeclareLaunchArgument(
 			"use_bridge",
 			default_value="bridge",
-			description="Whether to use a bridge to connect clients: none, bridge.",
+			description="Whether to use a bridge to connect clients: none, bridge, foxglove.",
 		),
 		DeclareLaunchArgument(
 			"robot_name",
@@ -190,6 +197,11 @@ def generate_launch_description() -> LaunchDescription:
 			'roadmap_explore_config_file',
 			default_value=PathJoinSubstitution([FindPackageShare('roadmap_explorer'), 'params', 'exploration_params.yaml']),
 			description='Full path to the ROS2 parameters file to use for all roadmap exploration nodes'),
+
+    	DeclareLaunchArgument(
+			'frontier_explore_config_file',
+			default_value=PathJoinSubstitution([FindPackageShare('x3plus_nav2'), 'config', 'frontier-exploration-params.yaml']),
+			description='Full path to the ROS2 parameters file to use for frontier exploration'),
     			
 		DeclareLaunchArgument(
 			'slam',
@@ -226,7 +238,7 @@ def generate_launch_description() -> LaunchDescription:
             function=lambda context: validate_enum_arg(
                 context,
                 'use_case',
-                ['drive', 'slam', 'explore', 'rexplore']
+                ['drive', 'slam', 'explore', 'explore-lite', 'explore-roadmap', 'explore-frontier']
             )
         ),
 		OpaqueFunction(
@@ -240,7 +252,7 @@ def generate_launch_description() -> LaunchDescription:
             function=lambda context: validate_enum_arg(
                 context,
                 'use_bridge',
-                ['none', 'bridge']
+                ['none', 'bridge', 'foxglove']
             )
         ),
 		# endregion
@@ -336,7 +348,7 @@ def generate_launch_description() -> LaunchDescription:
 				'use_respawn':     LaunchConfiguration('use_respawn'),
 			}.items(),
 			condition=IfCondition(
-				PythonExpression(["'", use_case, "' in ['slam', 'explore']"])
+				PythonExpression(["'", use_case, "' in ['slam', 'explore', 'explore-lite', 'explore-frontier', 'explore-roadmap']"])
 			),
 		),
 		#endregion
@@ -350,7 +362,7 @@ def generate_launch_description() -> LaunchDescription:
 			parameters=[explore_config_file, {"use_sim_time": use_sim_time, "visualize": LaunchConfiguration("visualize")}],
 			output="screen",			
 			condition=IfCondition(
-				PythonExpression(["'", use_case, "' in ['explore']"])
+				PythonExpression(["'", use_case, "' in ['explore-lite']"])
 			),
 		),
 
@@ -364,11 +376,32 @@ def generate_launch_description() -> LaunchDescription:
 			parameters=[roadmap_explore_config_file,
 						{'use_sim_time': use_sim_time}],
 			condition=IfCondition(
-				PythonExpression(["'", use_case, "' in ['rexplore']"])
+				PythonExpression(["'", use_case, "' in ['explore-roadmap']"])
+			),
+		),
+
+
+		IncludeLaunchDescription(
+			PythonLaunchDescriptionSource(
+				PathJoinSubstitution([
+					FindPackageShare('frontier_explorer_ros2'),
+					'launch',
+					'frontier_explorer.launch.py',
+				])
+			),
+			launch_arguments={
+				'use_sim_time':    LaunchConfiguration('use_sim_time'),
+			}.items(),
+			condition=IfCondition(
+				PythonExpression(["'", use_case, "' in ['explore','explore-frontier']"])
 			),
 		),
 
 		#endregion
+
+
+		#region Include bridge launch files based on conditions
+
 
 		IncludeLaunchDescription(
             XMLLaunchDescriptionSource(
@@ -385,6 +418,24 @@ def generate_launch_description() -> LaunchDescription:
 				PythonExpression(["'", use_bridge, "' == 'bridge'"])
 			),
 		),
+		
+		IncludeLaunchDescription(
+			XMLLaunchDescriptionSource(
+				PathJoinSubstitution([
+					FindPackageShare("foxglove_bridge"),
+					"launch",
+					"foxglove_bridge_launch.xml"
+				])
+			),
+			# launch_arguments={
+			# 	"use_joystick": LaunchConfiguration("use_joystick", default=use_joystick),
+			#}.items(),
+			condition=IfCondition(
+				PythonExpression(["'", use_bridge, "' == 'foxglove'"])
+			),
+		),
+
+		#endregion
         #region Include UI launch files based on conditions    
 		IncludeLaunchDescription(
 			PythonLaunchDescriptionSource(

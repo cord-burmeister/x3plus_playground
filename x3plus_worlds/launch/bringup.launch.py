@@ -168,10 +168,7 @@ def generate_launch_description() -> LaunchDescription:
             'rviz_config_file',
             default_value=PathJoinSubstitution([pkg_share, 'rviz', 'nav_footprint.rviz']),
             description='Full path to the RVIZ config file to use'),
-        DeclareLaunchArgument(
-            'explore_config_file',
-            default_value=PathJoinSubstitution([FindPackageShare('x3plus_nav2'), 'config', 'explore-params.yaml']),
-            description='Full path to the Explore Lite config file to use'),
+
 		DeclareLaunchArgument(
 			'visualize',
 			default_value='True',
@@ -193,6 +190,11 @@ def generate_launch_description() -> LaunchDescription:
 		# 	'params_file',
 		# 	default_value=PathJoinSubstitution([FindPackageShare('x3plus_nav2'), 'config', 'nav2_params.yaml']),
 		# 	description='Full path to the Nav2 parameters file'),
+        DeclareLaunchArgument(
+            'explore_config_file',
+            default_value=PathJoinSubstitution([FindPackageShare('x3plus_nav2'), 'config', 'explore-params.yaml']),
+            description='Full path to the Explore Lite config file to use'),
+
     	DeclareLaunchArgument(
 			'roadmap_explore_config_file',
 			default_value=PathJoinSubstitution([FindPackageShare('roadmap_explorer'), 'params', 'exploration_params.yaml']),
@@ -384,16 +386,19 @@ def generate_launch_description() -> LaunchDescription:
 		IncludeLaunchDescription(
 			PythonLaunchDescriptionSource(
 				PathJoinSubstitution([
-					FindPackageShare('frontier_explorer_ros2'),
+					FindPackageShare('frontier_exploration_ros2'),
 					'launch',
 					'frontier_explorer.launch.py',
 				])
 			),
 			launch_arguments={
 				'use_sim_time':    LaunchConfiguration('use_sim_time'),
+				'autostart':       "True",
+				'params_file':     LaunchConfiguration('frontier_explore_config_file'),
 			}.items(),
 			condition=IfCondition(
-				PythonExpression(["'", use_case, "' in ['explore','explore-frontier']"])
+				PythonExpression(["'", use_case, "' in ['explore', 'explore-frontier']"])
+
 			),
 		),
 
@@ -401,7 +406,6 @@ def generate_launch_description() -> LaunchDescription:
 
 
 		#region Include bridge launch files based on conditions
-
 
 		IncludeLaunchDescription(
             XMLLaunchDescriptionSource(
@@ -436,6 +440,7 @@ def generate_launch_description() -> LaunchDescription:
 		),
 
 		#endregion
+
         #region Include UI launch files based on conditions    
 		IncludeLaunchDescription(
 			PythonLaunchDescriptionSource(

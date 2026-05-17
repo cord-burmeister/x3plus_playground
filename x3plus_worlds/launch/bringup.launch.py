@@ -52,10 +52,10 @@ def derive_configs(context, pkg_share, *args, **kwargs):
 		rviz_name = "explore_footprint.rviz"
 		slam = "True"
 	elif use_case == "explore-frontier":
-		rviz_name = "explore_footprint.rviz"
+		rviz_name = "explore_frontier_footprint.rviz"
 		slam = "True"
 	elif use_case == "explore":
-		rviz_name = "explore_footprint.rviz"
+		rviz_name = "explore_frontier_footprint.rviz"
 		slam = "True"
 	else:
 		raise ValueError(f"Unsupported use_case '{use_case}'")

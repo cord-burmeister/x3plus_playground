@@ -113,6 +113,7 @@ def generate_launch_description():
             "roll": LaunchConfiguration("roll", default="0.00"),
             "pitch": LaunchConfiguration("pitch", default="0.00"),
             "yaw": LaunchConfiguration("yaw", default="0.00"),
+            "use_sim_time": use_sim_time,
             "world": LaunchConfiguration("world"),
         }.items(),
     )

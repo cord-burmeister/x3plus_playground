@@ -7,14 +7,14 @@
       <collision name="collision">
         <geometry>
           <mesh>
-            <uri>model://willowgarage/meshes/willowgarage.glb</uri>
+            <uri>model://willowgarage/meshes/willowgarage_hd_closed.glb</uri>
           </mesh>
         </geometry>
       </collision>
       <visual name="visual">
         <geometry>
           <mesh>
-            <uri>model://willowgarage/meshes/willowgarage.glb</uri>
+            <uri>model://willowgarage/meshes/willowgarage_hd_closed.glb</uri>
           </mesh>
         </geometry>
         <cast_shadows>false</cast_shadows>

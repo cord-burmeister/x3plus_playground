@@ -49,6 +49,7 @@ def evaluate_xacro(context, *args, **kwargs):
     robot_description_config = xacro.process_file(xacro_file, 
             mappings={  
                 }).toxml()
+    use_sim_time = LaunchConfiguration("use_sim_time").perform(context).lower() in ("true", "1")
 
     robot_state_publisher_node = Node(
        package='robot_state_publisher',
@@ -56,7 +57,8 @@ def evaluate_xacro(context, *args, **kwargs):
        name='robot_state_publisher',
        output='both',
        parameters=[{
-        'robot_description': robot_description_config
+                'robot_description': robot_description_config,
+                'use_sim_time': use_sim_time,
       }])
 
     return [robot_state_publisher_node]
@@ -127,6 +129,7 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument("roll", default_value="0.00"),
         DeclareLaunchArgument("pitch", default_value="0.00"),
         DeclareLaunchArgument("yaw", default_value="0.00"),
+        DeclareLaunchArgument("use_sim_time", default_value="true"),
         DeclareLaunchArgument("world"),
     ]
 

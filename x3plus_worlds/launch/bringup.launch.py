@@ -27,6 +27,7 @@ import socket
 
 HOSTNAME_WORLD_MAP = {
 	"b760": ("willowgarage", "willowgarage-hd.world"),
+	"minint-235eplg": ("willowgarage", "willowgarage-hd.world"),
 }
 
 DEFAULT_WORLD = ("willowgarage", "willowgarage.world")

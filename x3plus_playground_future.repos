@@ -1,0 +1,10 @@
+repositories:
+  m-explore-ros2:
+    type: git
+    url: https://github.com/cord-burmeister/m-explore-ros2.git
+    version: main
+  roadmap-explorer:
+    type: git
+    url: https://github.com/cord-burmeister/roadmap-explorer.git
+    version: main
+

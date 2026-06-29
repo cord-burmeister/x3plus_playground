@@ -38,8 +38,15 @@
       
     <physics name='default_physics' default='0' type='ode'>
         <max_step_size>0.001</max_step_size>
+        <!-- <max_step_size>0.0005</max_step_size> -->
         <real_time_factor>1</real_time_factor>
-        <real_time_update_rate>0</real_time_update_rate>
+        <!-- 
+        To make your simulation run at a normal speed and ensure your ROS 2 topics publish at a reliable, 
+        steady frequency, you need to sync the math.
+        The calculation is: max_step_size × real_time_update_rate = real_time_factor.
+        If you want a target Real Time Factor (RTF) of 1 (real life speed) with a step size of 0.001, 
+        your rate must be 1000-->
+        <real_time_update_rate>1000</real_time_update_rate>
         <ode>
             <solver>
               <thread_position_correction>1</thread_position_correction>
